@@ -42,9 +42,11 @@ import {
   initUser,
   saveActivityLogsNotification,
   updateAgencyDetails,
+  upsertAgency,
 } from "@/lib/queries";
 import { Button } from "../ui/button";
 import Loading from "../global/loading";
+import { v4 } from "uuid";
 
 type Props = {
   data?: Partial<Agency>;
@@ -75,7 +77,7 @@ const AgencyDetails = ({ data }: Props) => {
       companyEmail: data?.companyEmail,
       companyPhone: data?.companyPhone,
       whiteLabel: data?.whiteLabel,
-      address: data?.adress,
+      address: data?.address,
       city: data?.city,
       zipCode: data?.zipCode,
       state: data?.state,
@@ -83,7 +85,7 @@ const AgencyDetails = ({ data }: Props) => {
       agencyLogo: data?.agencyLogo,
     },
   });
-  const isLoading = form.formState.isSubmitted;
+  const isLoading = form.formState.isSubmitting;
 
   useEffect(() => {
     if (data) {
@@ -121,10 +123,43 @@ const AgencyDetails = ({ data }: Props) => {
       //WIP Customer Id
       newUserData = await initUser({role: "AGENCY_OWNER"})
 
-      if (!data?.customerId) {
-        
+      if (!data?.id) {
+        const response = await upsertAgency({
+          id: data?.id ? data.id : v4(),
+          customerId: data?.customerId || "",
+          address: values.address,
+          agencyLogo: values.agencyLogo,
+          city: values.city,
+          companyPhone: values.companyPhone,
+          country: values.country,
+          name: values.name,
+          state: values.state,
+          whiteLabel: values.whiteLabel,
+          zipCode: values.zipCode,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          companyEmail: values.companyEmail,
+          connectedAccountId: '',
+          goal: 5,
+        })
+
+        toast({
+          title: "Created Agency",
+        });
+        if (data?.id || response) {
+          return router.refresh()
+        }
       }
-    } catch (error) {}
+
+    } catch (error) {
+      console.error(error);
+      
+      toast({
+        variant: "destructive",
+        title: "Opps!",
+        description: "Could not create your agency",
+      });
+    }
   };
 
   const handleDeleteAgency = async () => {
@@ -253,7 +288,6 @@ const AgencyDetails = ({ data }: Props) => {
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -294,7 +328,7 @@ const AgencyDetails = ({ data }: Props) => {
                     <FormItem className="flex-1">
                       <FormLabel>State</FormLabel>
                       <FormControl>
-                        <Input readOnly placeholder="State" {...field} />
+                        <Input placeholder="State" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -308,7 +342,7 @@ const AgencyDetails = ({ data }: Props) => {
                     <FormItem className="flex-1">
                       <FormLabel>Zipcode</FormLabel>
                       <FormControl>
-                        <Input readOnly placeholder="Zipcode" {...field} />
+                        <Input placeholder="Zipcode" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -323,7 +357,7 @@ const AgencyDetails = ({ data }: Props) => {
                   <FormItem>
                     <FormLabel>Country</FormLabel>
                     <FormControl>
-                      <Input readOnly placeholder="Country" {...field} />
+                      <Input placeholder="Country" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
