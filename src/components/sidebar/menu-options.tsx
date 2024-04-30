@@ -231,7 +231,6 @@ const MenuOptions = ({
                             title="Create A Subaccount"
                             subheading="You can switch between your agency 
                           account and the subaccount from the sidebar"
-                            defaultOpen={defaultOpen}
                           >
                             <SubAccountDetails
                               agencyDetails={user?.Agency as Agency}
