@@ -268,11 +268,11 @@ const MenuOptions = ({
                     return (
                       <CommandItem
                         key={sidebarOption.id}
-                        className=" md:w-62 w-full"
+                        className=" md:w-80 w-full"
                       >
                         <Link
                           href={sidebarOption.link}
-                          className=" flex items-center gap-2 hover:bg-transparent rounded-md transition-all md:w-full w-62"
+                          className=" flex items-center gap-2 hover:bg-transparent rounded-md transition-all md:w-full w-80"
                         >
                           {value}
                           <span>{sidebarOption.name}</span>
