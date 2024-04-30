@@ -3,8 +3,9 @@
 import { clerkClient, currentUser } from "@clerk/nextjs/server";
 import { db } from "./db";
 import { redirect } from "next/navigation";
-import { Agency, Plan, User } from "@prisma/client";
+import { Agency, Plan, SubAccount, User } from "@prisma/client";
 import { connect } from "http2";
+import { v4 } from "uuid";
 
 export const getAuthUserDetails = async () => {
   const user = await currentUser();
@@ -195,29 +196,29 @@ export const updateAgencyDetails = async (
 ) => {
   const response = await db.agency.update({
     where: { id: agencyId },
-    data: { ...agencyDetails }
+    data: { ...agencyDetails },
   });
 
-  return response
+  return response;
 };
 
 export const deleteAgency = async (agencyId: string) => {
   const response = await db.agency.delete({
     where: {
-      id: agencyId
-    }
-  })
+      id: agencyId,
+    },
+  });
 
-  return response
-} 
+  return response;
+};
 
 export const initUser = async (newUser: Partial<User>) => {
-  const user = await currentUser()
-  if (!user) return
+  const user = await currentUser();
+  if (!user) return;
 
   const userData = await db.user.upsert({
     where: {
-      email: user.emailAddresses[0].emailAddress
+      email: user.emailAddresses[0].emailAddress,
     },
     update: newUser,
     create: {
@@ -225,35 +226,35 @@ export const initUser = async (newUser: Partial<User>) => {
       avatarUrl: user.imageUrl,
       email: user.emailAddresses[0].emailAddress,
       name: `${user.firstName} ${user.lastName}`,
-      role: newUser.role || "SUBACCOUNT_USER"
-    }
-  })
+      role: newUser.role || "SUBACCOUNT_USER",
+    },
+  });
 
   await clerkClient.users.updateUserMetadata(user.id, {
     privateMetadata: {
-      role: newUser.role || "SUBACCOUNT_USER"
-    }
-  })
+      role: newUser.role || "SUBACCOUNT_USER",
+    },
+  });
 
-  return userData
-}
+  return userData;
+};
 
 export const upsertAgency = async (agency: Agency, price?: Plan) => {
   if (!agency.companyEmail) {
-    return null
+    return null;
   }
 
   try {
     const agencyDetails = await db.agency.upsert({
       where: {
-        id: agency.id
+        id: agency.id,
       },
       update: agency,
       create: {
         users: {
           connect: {
-            email: agency.companyEmail
-          }
+            email: agency.companyEmail,
+          },
         },
         ...agency,
         SidebarOptions: {
@@ -288,15 +289,15 @@ export const upsertAgency = async (agency: Agency, price?: Plan) => {
               icon: "shield",
               link: `/agency/${agency.id}/team`,
             },
-          ]
-        }
-      }
-    })
-    return agencyDetails
+          ],
+        },
+      },
+    });
+    return agencyDetails;
   } catch (error) {
     console.error(error);
   }
-}
+};
 
 export const getNotificationAndUser = async (agencyId: string) => {
   try {
@@ -304,12 +305,104 @@ export const getNotificationAndUser = async (agencyId: string) => {
       where: { agencyId },
       include: { User: true },
       orderBy: {
-        createdAt: "desc"
-      }
-    })
-    
-    return response
+        createdAt: "desc",
+      },
+    });
+
+    return response;
   } catch (error) {
     console.error(error);
   }
-}
+};
+
+export const upsertSubAccount = async (subAccount: SubAccount) => {
+  if (!subAccount.companyEmail) {
+    return null;
+  }
+
+  const agencyOwner = await db.user.findFirst({
+    where: {
+      Agency: {
+        id: subAccount.agencyId,
+      },
+      role: "AGENCY_OWNER",
+    },
+  });
+
+  if (!agencyOwner) {
+    return console.error("Error could not create subaccount");
+  }
+
+  const permissionId = v4();
+  const response = await db.subAccount.upsert({
+    where: {
+      id: subAccount.id,
+    },
+    update: subAccount,
+    create: {
+      ...subAccount,
+      Permissions: {
+        create: {
+          access: true,
+          email: agencyOwner.email,
+          id: permissionId,
+        },
+        connect: {
+          subAccountId: subAccount.id,
+          id: permissionId,
+        },
+      },
+      Pipelines: {
+        create: {
+          name: "Lead Cycle",
+        },
+      },
+      SidebarOptions: {
+        create: [
+          {
+            name: "Launchpad",
+            icon: "clipboardIcon",
+            link: `/subaccount/${subAccount.id}/launchpad`
+          },
+          {
+            name: "Settings",
+            icon: "settings",
+            link: `/subaccount/${subAccount.id}/settings`
+          },
+          {
+            name: "Funnels",
+            icon: "pipelines",
+            link: `/subaccount/${subAccount.id}/funnels`
+          },
+          {
+            name: "Media",
+            icon: "database",
+            link: `/subaccount/${subAccount.id}/media`
+          },
+          {
+            name: "Automations",
+            icon: "chip",
+            link: `/subaccount/${subAccount.id}/automations`
+          },
+          {
+            name: "Pipelines",
+            icon: "flag",
+            link: `/subaccount/${subAccount.id}/pipelines`
+          },
+          {
+            name: "Contacts",
+            icon: "person",
+            link: `/subaccount/${subAccount.id}/contacts`
+          },
+          {
+            name: "Dashboard",
+            icon: "category",
+            link: `/subaccount/${subAccount.id}`
+          },
+        ]
+      }
+    },
+  });
+
+  return response
+};
