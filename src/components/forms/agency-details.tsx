@@ -397,7 +397,7 @@ const AgencyDetails = ({ data }: Props) => {
           </Form>
           {data?.id && (
             <div className="flex flex-row items-center justify-between rounded-lg border border-destructive gap-4 p-4 mt-4">
-              <div>
+              <div className="gap-8">
                 <div>Danger Zone</div>
                 <div className="text-muted-foreground">
                   Deleting your agency cannot be undone. This will also delete
@@ -408,7 +408,7 @@ const AgencyDetails = ({ data }: Props) => {
               </div>
               <AlertDialogTrigger
                 disabled={isLoading || deletingAgency}
-                className="text-red-600 p-2 text-center mt-2 rounded-md hover:bg-red-600 hover:text-white whitespace-nowrap"
+                className="text-foregrond border-[1px] border-red-600 p-2 text-center mt-2 rounded-md hover:bg-red-600 hover:text-white whitespace-nowrap"
               >
                 {deletingAgency ? "Deleting..." : "Delete Agency"}
               </AlertDialogTrigger>
