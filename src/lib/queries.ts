@@ -4,7 +4,6 @@ import { clerkClient, currentUser } from "@clerk/nextjs/server";
 import { db } from "./db";
 import { redirect } from "next/navigation";
 import { Agency, Plan, SubAccount, User } from "@prisma/client";
-import { connect } from "http2";
 import { v4 } from "uuid";
 
 export const getAuthUserDetails = async () => {
@@ -362,47 +361,104 @@ export const upsertSubAccount = async (subAccount: SubAccount) => {
           {
             name: "Launchpad",
             icon: "clipboardIcon",
-            link: `/subaccount/${subAccount.id}/launchpad`
+            link: `/subaccount/${subAccount.id}/launchpad`,
           },
           {
             name: "Settings",
             icon: "settings",
-            link: `/subaccount/${subAccount.id}/settings`
+            link: `/subaccount/${subAccount.id}/settings`,
           },
           {
             name: "Funnels",
             icon: "pipelines",
-            link: `/subaccount/${subAccount.id}/funnels`
+            link: `/subaccount/${subAccount.id}/funnels`,
           },
           {
             name: "Media",
             icon: "database",
-            link: `/subaccount/${subAccount.id}/media`
+            link: `/subaccount/${subAccount.id}/media`,
           },
           {
             name: "Automations",
             icon: "chip",
-            link: `/subaccount/${subAccount.id}/automations`
+            link: `/subaccount/${subAccount.id}/automations`,
           },
           {
             name: "Pipelines",
             icon: "flag",
-            link: `/subaccount/${subAccount.id}/pipelines`
+            link: `/subaccount/${subAccount.id}/pipelines`,
           },
           {
             name: "Contacts",
             icon: "person",
-            link: `/subaccount/${subAccount.id}/contacts`
+            link: `/subaccount/${subAccount.id}/contacts`,
           },
           {
             name: "Dashboard",
             icon: "category",
-            link: `/subaccount/${subAccount.id}`
+            link: `/subaccount/${subAccount.id}`,
           },
-        ]
-      }
+        ],
+      },
     },
   });
 
-  return response
+  return response;
+};
+
+export const getUserPermissions = async (userId: string) => {
+  const response = await db.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      Permissions: {
+        include: {
+          SubAccount: true,
+        },
+      },
+    },
+  });
+
+  return response;
+};
+
+export const updateUser = async (user: Partial<User>) => {
+  const response = await db.user.update({
+    where: {
+      email: user.email,
+    },
+    data: { ...user },
+  });
+
+  await clerkClient.users.updateUserMetadata(response.id, {
+    privateMetadata: {
+      role: user.role || "SUBACCOUNT_USER",
+    },
+  });
+
+  return response;
+};
+
+export const changeUserPermissions = async (
+  permissionId: string | undefined,
+  userEmail: string,
+  subAccountId: string,
+  permission: boolean
+) => {
+  try {
+    const response = await db.permission.upsert({
+      where: { id: permissionId },
+      update: { access: permission },
+      create: {
+        access: permission,
+        email: userEmail,
+        subAccountId: subAccountId,
+      },
+    });
+    return response
+  } catch (error) {
+    console.log("Could not change permissions", error);
+    
+  }
 };
