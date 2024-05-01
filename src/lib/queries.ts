@@ -462,3 +462,23 @@ export const changeUserPermissions = async (
     
   }
 };
+
+export const getSubaccountDetails = async (subAccountId: string) => {
+  const response = await db.subAccount.findUnique({
+    where: {
+      id: subAccountId
+    }
+  })
+
+  return response
+}
+
+export const deleteSubAccount = async (subAccountId:string) => {
+  const response = await db.subAccount.delete({
+    where: {
+      id: subAccountId
+    }
+  })
+
+  return response
+}
