@@ -260,7 +260,7 @@ const MenuOptions = ({
                   {sidebarOptions.map((sidebarOption) => {
                     let value;
                     const result = icons.find(
-                      (icon) => (icon.value === sidebarOption.icon)
+                      (icon) => icon.value === sidebarOption.icon
                     );
                     if (result) {
                       value = <result.path />;
@@ -270,13 +270,25 @@ const MenuOptions = ({
                         key={sidebarOption.id}
                         className=" md:w-80 w-full"
                       >
-                        <Link
-                          href={sidebarOption.link}
-                          className=" flex items-center gap-2 hover:bg-transparent rounded-md transition-all md:w-full w-80"
-                        >
-                          {value}
-                          <span>{sidebarOption.name}</span>
-                        </Link>
+                        {defaultOpen ? (
+                          <Link
+                            href={sidebarOption.link}
+                            className=" flex items-center gap-2 hover:bg-transparent rounded-md transition-all md:w-full w-80"
+                          >
+                            {value}
+                            <span>{sidebarOption.name}</span>
+                          </Link>
+                        ) : (
+                          <SheetClose asChild>
+                            <Link
+                              href={sidebarOption.link}
+                              className=" flex items-center gap-2 hover:bg-transparent rounded-md transition-all md:w-full w-80"
+                            >
+                              {value}
+                              <span>{sidebarOption.name}</span>
+                            </Link>
+                          </SheetClose>
+                        )}
                       </CommandItem>
                     );
                   })}
