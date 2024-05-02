@@ -456,29 +456,89 @@ export const changeUserPermissions = async (
         subAccountId: subAccountId,
       },
     });
-    return response
+    return response;
   } catch (error) {
     console.log("Could not change permissions", error);
-    
   }
 };
 
 export const getSubaccountDetails = async (subAccountId: string) => {
   const response = await db.subAccount.findUnique({
     where: {
-      id: subAccountId
-    }
-  })
+      id: subAccountId,
+    },
+  });
 
-  return response
-}
+  return response;
+};
 
-export const deleteSubAccount = async (subAccountId:string) => {
+export const deleteSubAccount = async (subAccountId: string) => {
   const response = await db.subAccount.delete({
     where: {
-      id: subAccountId
+      id: subAccountId,
+    },
+  });
+
+  return response;
+};
+
+export const getAgencyDetails = async (agencyId: string) => {
+  const agencyDetails = await db.agency.findUnique({
+    where: {
+      id: agencyId,
+    },
+    include: {
+      SubAccounts: true,
+    },
+  });
+
+  return agencyDetails;
+};
+
+export const deleteUser = async (userId: string) => {
+  await clerkClient.users.updateUserMetadata(userId, {
+    privateMetadata: {
+      role: undefined,
+    },
+  });
+
+  const deletedUser = await db.user.delete({
+    where: {
+      id: userId,
+    },
+  });
+
+  return deletedUser;
+};
+
+export const getUser = async (id: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  return user;
+};
+
+export const getUsersWithAgencySubAccountsPermissionsAndSidebarOptions = async (agencyId: string) => {
+  return await db.user.findFirst({
+    where: {
+      Agency: {
+        id: agencyId
+      }
+    },
+    include: {
+      Agency: {
+        include: {
+          SubAccounts: true
+        }
+      },
+      Permissions: {
+        include: {
+          SubAccount: true
+        }
+      }
     }
   })
-
-  return response
 }
