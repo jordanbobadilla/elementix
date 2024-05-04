@@ -51,7 +51,6 @@ const UploadMediaForm = ({ subAccountId, setClose }: Props) => {
 
       toast({ title: "Success", description: "Uploaded media" });
       router.refresh();
-      setClose()
     } catch (error) {
       console.log(error);
       toast({
@@ -60,6 +59,8 @@ const UploadMediaForm = ({ subAccountId, setClose }: Props) => {
         variant: "destructive",
       });
     }
+
+    setClose()
   };
 
   return (

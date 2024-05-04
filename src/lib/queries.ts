@@ -3,9 +3,10 @@
 import { clerkClient, currentUser } from "@clerk/nextjs/server";
 import { db } from "./db";
 import { redirect } from "next/navigation";
-import { Agency, Plan, Role, SubAccount, User } from "@prisma/client";
+import { Agency, Plan, Prisma, Role, SubAccount, User } from "@prisma/client";
 import { v4 } from "uuid";
-import { CreateMediaType } from "./types";
+import { CreateFunnelFormSchema, CreateMediaType } from "./types";
+import { z } from "zod";
 
 export const getAuthUserDetails = async () => {
   const user = await currentUser();
@@ -586,7 +587,7 @@ export const getMedia = async (subaccountId: string) => {
     },
   });
 
-  return mediaFiles
+  return mediaFiles;
 };
 
 export const createMedia = async (
@@ -607,8 +608,71 @@ export const createMedia = async (
 export const deleteMedia = async (fileId: string) => {
   const response = await db.media.delete({
     where: {
-      id: fileId
-    }
+      id: fileId,
+    },
+  });
+
+  return response;
+};
+
+export const getPipelinesDetails = async (pipelineId: string) => {
+  const response = await db.pipeline.findUnique({
+    where: {
+      id: pipelineId,
+    },
+  });
+
+  return response;
+};
+
+export const getLanesWithTicketsAndTags = async (pipelineId: string) => {
+  const response = await db.lane.findMany({
+    where: {
+      pipelineId: pipelineId,
+    },
+    orderBy: {
+      order: "asc",
+    },
+    include: {
+      Tickets: {
+        orderBy: {
+          order: "asc",
+        },
+        include: {
+          Tags: true,
+          Assigned: true,
+          Customer: true,
+        },
+      },
+    },
+  });
+
+  return response;
+};
+
+export const upsertFunnel = async (
+  subAccountId: string,
+  funnel: z.infer<typeof CreateFunnelFormSchema> & { liveProducts: string },
+  funnelId: string
+) => {
+  const response = await db.funnel.upsert({
+    where: { id: funnelId },
+    update: funnel,
+    create: {
+      ...funnel,
+      id: funnelId || v4(),
+      subAccountId: subAccountId,
+    },
+  });
+
+  return response;
+};
+
+export const upsertPipeline = async (pipeline: Prisma.PipelineUncheckedCreateWithoutLanesInput) => {
+  const response = await db.pipeline.upsert({
+    where : { id: pipeline.id || v4()},
+    update: pipeline,
+    create: pipeline
   })
 
   return response

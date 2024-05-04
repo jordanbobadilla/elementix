@@ -1,0 +1,37 @@
+import { db } from '@/lib/db'
+import { redirect } from 'next/navigation'
+import React from 'react'
+
+type Props = {
+  params: {
+    subaccountId: string
+  }
+}
+
+const Pipelines = async ({params}: Props) => {
+  const pipelinesExists  = await db.pipeline.findFirst({
+    where: {
+      subAccountId: params.subaccountId
+    }
+  })
+
+  if (pipelinesExists) {
+    return redirect(`/subaccount/${params.subaccountId}/pipelines/${pipelinesExists.id}`)
+  }
+
+  try {
+    const response = await db.pipeline.create({
+      data: { name:"First Pipeline", subAccountId: params.subaccountId}
+    })
+
+    return redirect(`/subaccount/${params.subaccountId}/pipelines/${response.id}`)
+  } catch (error) {
+    console.log(error);
+  }
+
+  return (
+    <div>Pipelines</div>
+  )
+}
+
+export default Pipelines
