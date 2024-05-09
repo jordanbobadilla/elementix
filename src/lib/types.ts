@@ -1,5 +1,5 @@
 import { Contact, Lane, Notification, Prisma, Role, Tag, Ticket, User } from "@prisma/client";
-import { getAuthUserDetails, getMedia, getUserPermissions, getUsersWithAgencySubAccountsPermissionsAndSidebarOptions } from "./queries";
+import { getAuthUserDetails, getMedia, getPipelinesDetails, getUserPermissions, getUsersWithAgencySubAccountsPermissionsAndSidebarOptions } from "./queries";
 import { z } from "zod";
 
 export type NotificationWithUser =
@@ -54,4 +54,12 @@ export const CreateFunnelFormSchema = z.object({
   description: z.string(),
   subDomainName: z.string().optional(),
   favicon: z.string().optional(),
+})
+
+export type PipelineDetailsWithLanesCardsTagsTickets = Prisma.PromiseReturnType<
+  typeof getPipelinesDetails
+>
+
+export const LaneFormSchema = z.object({
+  name: z.string().min(1),
 })
