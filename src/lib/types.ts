@@ -1,5 +1,5 @@
 import { Contact, Lane, Notification, Prisma, Role, Tag, Ticket, User } from "@prisma/client";
-import { getAuthUserDetails, getMedia, getPipelinesDetails, getUserPermissions, getUsersWithAgencySubAccountsPermissionsAndSidebarOptions } from "./queries";
+import { getAuthUserDetails, getMedia, getPipelinesDetails, getTicketsWithAllRelations, getTicketsWithTags, getUserPermissions, getUsersWithAgencySubAccountsPermissionsAndSidebarOptions } from "./queries";
 import { z } from "zod";
 
 export type NotificationWithUser =
@@ -62,4 +62,22 @@ export type PipelineDetailsWithLanesCardsTagsTickets = Prisma.PromiseReturnType<
 
 export const LaneFormSchema = z.object({
   name: z.string().min(1),
+})
+
+export type TicketWithTags = Prisma.PromiseReturnType<
+  typeof getTicketsWithTags
+>
+
+export type TicketDetails = Prisma.PromiseReturnType<
+  typeof getTicketsWithAllRelations
+>
+
+const currencyNumberRegex = /^\d+(\.\d{1,2})?$/
+
+export const TicketFormSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  value: z.string().refine((value) => currencyNumberRegex.test(value), {
+    message: "Value must be a valid price."
+  })
 })
