@@ -5,17 +5,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { pricingCards } from "@/lib/constans";
-import clsx from "clsx";
-import { Check } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
+} from "@/components/ui/card"
+import { pricingCards } from "@/lib/constans"
+import clsx from "clsx"
+import { Check } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
 
 export default function Home() {
   return (
     <>
-      <section className="h-full w-full pt-18 md:pt-36 relative flex items-center justify-center flex-col">
+      <section className="h-full w-full mt-24 md:mt-36 relative flex items-center justify-center flex-col">
         <div
           className="absolute bottom-0 left-0 right-0 top-0 
         bg-[linear-gradient(to_right,#161616_1px,transparent_1px),linear-gradient(to_bottom,#161616_1px,transparent_1px)] 
@@ -40,7 +40,7 @@ export default function Home() {
       </section>
       <section className="flex justify-center items-center flex-col gap-4 md:!mt-20 mt-[-64px]">
         <h2 className="text-4xl text-center">Choose what fits you right</h2>
-        <p className="text-muted-foreground text-center">
+        <p className="text-muted-foreground text-center mx-4">
           Our straightforward pricing plans are tailored to meet your needs. If
           {" you're"} not <br />
           ready to commit you can get started for free.
@@ -50,7 +50,7 @@ export default function Home() {
             //WIP: Wire up free product from stripe
             <Card
               key={card.title}
-              className={clsx("w-[300px] flex flex-col justify-between", {
+              className={clsx("w-[400px] flex flex-col justify-between", {
                 "border-2 border-primary": card.title === "Unlimited Saas",
               })}
             >
@@ -98,5 +98,5 @@ export default function Home() {
         </div>
       </section>
     </>
-  );
+  )
 }
