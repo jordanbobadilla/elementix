@@ -1,19 +1,19 @@
-"use client";
+"use client"
 
 import {
   Agency,
   AgencySidebarOption,
   SubAccount,
   SubAccountSidebarOption,
-} from "@prisma/client";
-import React, { useEffect, useMemo, useState } from "react";
-import { Sheet, SheetClose, SheetContent, SheetTrigger } from "../ui/sheet";
-import { Button } from "../ui/button";
-import { ChevronsUpDown, Compass, Menu, PlusCircleIcon } from "lucide-react";
-import clsx from "clsx";
-import { AspectRatio } from "../ui/aspect-ratio";
-import Image from "next/image";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+} from "@prisma/client"
+import React, { useEffect, useMemo, useState } from "react"
+import { Sheet, SheetClose, SheetContent, SheetTrigger } from "../ui/sheet"
+import { Button } from "../ui/button"
+import { ChevronsUpDown, Compass, Menu, PlusCircleIcon } from "lucide-react"
+import clsx from "clsx"
+import { AspectRatio } from "../ui/aspect-ratio"
+import Image from "next/image"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import {
   Command,
   CommandEmpty,
@@ -21,23 +21,23 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../ui/command";
-import Link from "next/link";
-import { useModal } from "@/providers/modal-provider";
-import CustomModal from "../global/custom-modal";
-import SubAccountDetails from "../forms/subaccount-details";
-import { Separator } from "../ui/separator";
-import { icons } from "@/lib/constans";
+} from "../ui/command"
+import Link from "next/link"
+import { useModal } from "@/providers/modal-provider"
+import CustomModal from "../global/custom-modal"
+import SubAccountDetails from "../forms/subaccount-details"
+import { Separator } from "../ui/separator"
+import { icons } from "@/lib/constans"
 
 type Props = {
-  defaultOpen?: boolean;
-  subAccounts: SubAccount[];
-  sidebarOptions: AgencySidebarOption[] | SubAccountSidebarOption[];
-  sidebarLogo: string;
-  details: any;
-  user: any;
-  id: any;
-};
+  defaultOpen?: boolean
+  subAccounts: SubAccount[]
+  sidebarOptions: AgencySidebarOption[] | SubAccountSidebarOption[]
+  sidebarLogo: string
+  details: any
+  user: any
+  id: any
+}
 
 const MenuOptions = ({
   defaultOpen,
@@ -48,19 +48,19 @@ const MenuOptions = ({
   user,
   id,
 }: Props) => {
-  const { setOpen } = useModal();
-  const [isMounted, setIsMounted] = useState(false);
+  const { setOpen } = useModal()
+  const [isMounted, setIsMounted] = useState(false)
   const openState = useMemo(
     () => (defaultOpen ? { open: true } : {}),
     [defaultOpen]
-  );
+  )
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    setIsMounted(true)
+  }, [])
 
   if (!isMounted) {
-    return;
+    return
   }
   return (
     <Sheet modal={false} {...openState}>
@@ -95,14 +95,14 @@ const MenuOptions = ({
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                className=" w-full my-4 flex items-center justify-between py-8"
+                className=" w-full my-8 flex items-center justify-between py-8"
                 variant={"ghost"}
               >
-                <div className="flex items-center text-left gap-2">
+                <div className="flex items-center text-left gap-4">
                   <Compass />
                   <div className="flex flex-col">
                     {details.name}
-                    <span className=" text-muted-foreground">
+                    <span className=" text-muted-foreground text-wrap w-[180px]">
                       {details.address}
                     </span>
                   </div>
@@ -238,7 +238,7 @@ const MenuOptions = ({
                               userName={user?.name}
                             />
                           </CustomModal>
-                        );
+                        )
                       }}
                     >
                       <PlusCircleIcon size={15} />
@@ -258,12 +258,12 @@ const MenuOptions = ({
                 <CommandEmpty>No Results Found</CommandEmpty>
                 <CommandGroup className="overflow-visible">
                   {sidebarOptions.map((sidebarOption) => {
-                    let value;
+                    let value
                     const result = icons.find(
                       (icon) => icon.value === sidebarOption.icon
-                    );
+                    )
                     if (result) {
-                      value = <result.path />;
+                      value = <result.path />
                     }
                     return (
                       <CommandItem
@@ -290,7 +290,7 @@ const MenuOptions = ({
                           </SheetClose>
                         )}
                       </CommandItem>
-                    );
+                    )
                   })}
                 </CommandGroup>
               </CommandList>
@@ -299,7 +299,7 @@ const MenuOptions = ({
         </div>
       </SheetContent>
     </Sheet>
-  );
-};
+  )
+}
 
-export default MenuOptions;
+export default MenuOptions

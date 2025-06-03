@@ -1,8 +1,8 @@
-"use server";
+"use server"
 
-import { clerkClient, currentUser } from "@clerk/nextjs/server";
-import { db } from "./db";
-import { redirect } from "next/navigation";
+import { clerkClient, currentUser } from "@clerk/nextjs/server"
+import { db } from "./db"
+import { redirect } from "next/navigation"
 import {
   Agency,
   Lane,
@@ -13,15 +13,15 @@ import {
   Tag,
   Ticket,
   User,
-} from "@prisma/client";
-import { v4 } from "uuid";
-import { CreateFunnelFormSchema, CreateMediaType } from "./types";
-import { z } from "zod";
+} from "@prisma/client"
+import { v4 } from "uuid"
+import { CreateFunnelFormSchema, CreateMediaType } from "./types"
+import { z } from "zod"
 
 export const getAuthUserDetails = async () => {
-  const user = await currentUser();
+  const user = await currentUser()
   if (!user) {
-    return;
+    return
   }
 
   const userData = await db.user.findUnique({
@@ -41,15 +41,15 @@ export const getAuthUserDetails = async () => {
       },
       Permissions: true,
     },
-  });
+  })
 
-  return userData;
-};
+  return userData
+}
 
 export const verifyAndAcceptInvitation = async () => {
-  const user = await currentUser();
+  const user = await currentUser()
   if (!user) {
-    return redirect("/sign-in");
+    return redirect("/sign-in")
   }
 
   const invitationExists = await db.invitation.findUnique({
@@ -57,7 +57,7 @@ export const verifyAndAcceptInvitation = async () => {
       email: user.emailAddresses[0].emailAddress,
       status: "PENDING",
     },
-  });
+  })
 
   if (invitationExists) {
     const userDetails = await createTeamUser(invitationExists.agencyId, {
@@ -69,58 +69,58 @@ export const verifyAndAcceptInvitation = async () => {
       role: invitationExists.role,
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    })
     await saveActivityLogsNotification({
       agencyId: invitationExists?.agencyId,
       description: `Joined`,
       subaccountId: undefined,
-    });
+    })
 
     if (userDetails) {
       await clerkClient.users.updateUserMetadata(user.id, {
         privateMetadata: {
           role: userDetails.role || "SUBACCOUNT_USER",
         },
-      });
+      })
 
       await db.invitation.delete({
         where: { email: userDetails.email },
-      });
+      })
 
-      return userDetails.agencyId;
+      return userDetails.agencyId
     } else {
-      return null;
+      return null
     }
   } else {
     const agency = await db.user.findUnique({
       where: {
         email: user.emailAddresses[0].emailAddress,
       },
-    });
-    return agency ? agency?.agencyId : null;
+    })
+    return agency ? agency?.agencyId : null
   }
-};
+}
 
 export const createTeamUser = async (agencyId: string, user: User) => {
   if (user.role === "AGENCY_OWNER") {
-    return null;
+    return null
   }
 
-  const response = await db.user.create({ data: { ...user } });
-  return response;
-};
+  const response = await db.user.create({ data: { ...user } })
+  return response
+}
 
 export const saveActivityLogsNotification = async ({
   agencyId,
   description,
   subaccountId,
 }: {
-  agencyId?: string;
-  description: string;
-  subaccountId?: string;
+  agencyId?: string
+  description: string
+  subaccountId?: string
 }) => {
-  const authUser = await currentUser();
-  let userData;
+  const authUser = await currentUser()
+  let userData
   if (!authUser) {
     const response = await db.user.findFirst({
       where: {
@@ -130,34 +130,34 @@ export const saveActivityLogsNotification = async ({
           },
         },
       },
-    });
+    })
     if (response) {
-      userData = response;
+      userData = response
     }
   } else {
     userData = await db.user.findUnique({
       where: {
         email: authUser?.emailAddresses[0].emailAddress,
       },
-    });
+    })
   }
 
   if (!userData) {
-    console.log("Could not find user");
-    return;
+    console.log("Could not find user")
+    return
   }
 
-  let foundAgencyId = agencyId;
+  let foundAgencyId = agencyId
   if (!foundAgencyId) {
     if (!subaccountId) {
-      throw new Error("You need to provide an agency Id or subaccount Id");
+      throw new Error("You need to provide an agency Id or subaccount Id")
     }
     const response = await db.subAccount.findUnique({
       where: { id: subaccountId },
-    });
+    })
 
     if (response) {
-      foundAgencyId = response.agencyId;
+      foundAgencyId = response.agencyId
     }
   }
 
@@ -181,7 +181,7 @@ export const saveActivityLogsNotification = async ({
           },
         },
       },
-    });
+    })
   } else {
     await db.notification.create({
       data: {
@@ -197,9 +197,9 @@ export const saveActivityLogsNotification = async ({
           },
         },
       },
-    });
+    })
   }
-};
+}
 
 export const updateAgencyDetails = async (
   agencyId: string,
@@ -208,24 +208,24 @@ export const updateAgencyDetails = async (
   const response = await db.agency.update({
     where: { id: agencyId },
     data: { ...agencyDetails },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const deleteAgency = async (agencyId: string) => {
   const response = await db.agency.delete({
     where: {
       id: agencyId,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const initUser = async (newUser: Partial<User>) => {
-  const user = await currentUser();
-  if (!user) return;
+  const user = await currentUser()
+  if (!user) return
 
   const userData = await db.user.upsert({
     where: {
@@ -239,20 +239,20 @@ export const initUser = async (newUser: Partial<User>) => {
       name: `${user.firstName} ${user.lastName}`,
       role: newUser.role || "SUBACCOUNT_USER",
     },
-  });
+  })
 
   await clerkClient.users.updateUserMetadata(user.id, {
     privateMetadata: {
       role: newUser.role || "SUBACCOUNT_USER",
     },
-  });
+  })
 
-  return userData;
-};
+  return userData
+}
 
 export const upsertAgency = async (agency: Agency, price?: Plan) => {
   if (!agency.companyEmail) {
-    return null;
+    return null
   }
 
   try {
@@ -303,12 +303,12 @@ export const upsertAgency = async (agency: Agency, price?: Plan) => {
           ],
         },
       },
-    });
-    return agencyDetails;
+    })
+    return agencyDetails
   } catch (error) {
-    console.error(error);
+    console.error(error)
   }
-};
+}
 
 export const getNotificationAndUser = async (agencyId: string) => {
   try {
@@ -318,17 +318,17 @@ export const getNotificationAndUser = async (agencyId: string) => {
       orderBy: {
         createdAt: "desc",
       },
-    });
+    })
 
-    return response;
+    return response
   } catch (error) {
-    console.error(error);
+    console.error(error)
   }
-};
+}
 
 export const upsertSubAccount = async (subAccount: SubAccount) => {
   if (!subAccount.companyEmail) {
-    return null;
+    return null
   }
 
   const agencyOwner = await db.user.findFirst({
@@ -338,13 +338,13 @@ export const upsertSubAccount = async (subAccount: SubAccount) => {
       },
       role: "AGENCY_OWNER",
     },
-  });
+  })
 
   if (!agencyOwner) {
-    return console.error("Error could not create subaccount");
+    return console.error("Error could not create subaccount")
   }
 
-  const permissionId = v4();
+  const permissionId = v4()
   const response = await db.subAccount.upsert({
     where: {
       id: subAccount.id,
@@ -413,10 +413,10 @@ export const upsertSubAccount = async (subAccount: SubAccount) => {
         ],
       },
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const getUserPermissions = async (userId: string) => {
   const response = await db.user.findUnique({
@@ -430,10 +430,10 @@ export const getUserPermissions = async (userId: string) => {
         },
       },
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const updateUser = async (user: Partial<User>) => {
   const response = await db.user.update({
@@ -441,16 +441,16 @@ export const updateUser = async (user: Partial<User>) => {
       email: user.email,
     },
     data: { ...user },
-  });
+  })
 
   await clerkClient.users.updateUserMetadata(response.id, {
     privateMetadata: {
       role: user.role || "SUBACCOUNT_USER",
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const changeUserPermissions = async (
   permissionId: string | undefined,
@@ -467,32 +467,32 @@ export const changeUserPermissions = async (
         email: userEmail,
         subAccountId: subAccountId,
       },
-    });
-    return response;
+    })
+    return response
   } catch (error) {
-    console.log("Could not change permissions", error);
+    console.log("Could not change permissions", error)
   }
-};
+}
 
 export const getSubaccountDetails = async (subAccountId: string) => {
   const response = await db.subAccount.findUnique({
     where: {
       id: subAccountId,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const deleteSubAccount = async (subAccountId: string) => {
   const response = await db.subAccount.delete({
     where: {
       id: subAccountId,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const getAgencyDetails = async (agencyId: string) => {
   const agencyDetails = await db.agency.findUnique({
@@ -502,36 +502,36 @@ export const getAgencyDetails = async (agencyId: string) => {
     include: {
       SubAccounts: true,
     },
-  });
+  })
 
-  return agencyDetails;
-};
+  return agencyDetails
+}
 
 export const deleteUser = async (userId: string) => {
   await clerkClient.users.updateUserMetadata(userId, {
     privateMetadata: {
       role: undefined,
     },
-  });
+  })
 
   const deletedUser = await db.user.delete({
     where: {
       id: userId,
     },
-  });
+  })
 
-  return deletedUser;
-};
+  return deletedUser
+}
 
 export const getUser = async (id: string) => {
   const user = await db.user.findUnique({
     where: {
       id,
     },
-  });
+  })
 
-  return user;
-};
+  return user
+}
 
 export const getUsersWithAgencySubAccountsPermissionsAndSidebarOptions = async (
   agencyId: string
@@ -554,8 +554,8 @@ export const getUsersWithAgencySubAccountsPermissionsAndSidebarOptions = async (
         },
       },
     },
-  });
-};
+  })
+}
 
 export const sendInvitation = async (
   role: Role,
@@ -568,7 +568,7 @@ export const sendInvitation = async (
       agencyId,
       role,
     },
-  });
+  })
 
   try {
     await clerkClient.invitations.createInvitation({
@@ -578,14 +578,14 @@ export const sendInvitation = async (
         throughInvitation: true,
         role,
       },
-    });
+    })
   } catch (error) {
-    console.log(error);
-    throw error;
+    console.log(error)
+    throw error
   }
 
-  return response;
-};
+  return response
+}
 
 export const getMedia = async (subaccountId: string) => {
   const mediaFiles = await db.subAccount.findUnique({
@@ -595,10 +595,10 @@ export const getMedia = async (subaccountId: string) => {
     include: {
       MediaList: true,
     },
-  });
+  })
 
-  return mediaFiles;
-};
+  return mediaFiles
+}
 
 export const createMedia = async (
   subAccountId: string,
@@ -610,30 +610,30 @@ export const createMedia = async (
       name: mediaFile.name,
       subAccountId: subAccountId,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const deleteMedia = async (fileId: string) => {
   const response = await db.media.delete({
     where: {
       id: fileId,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const getPipelinesDetails = async (pipelineId: string) => {
   const response = await db.pipeline.findUnique({
     where: {
       id: pipelineId,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const getLanesWithTicketsAndTags = async (pipelineId: string) => {
   const response = await db.lane.findMany({
@@ -655,10 +655,10 @@ export const getLanesWithTicketsAndTags = async (pipelineId: string) => {
         },
       },
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const upsertFunnel = async (
   subAccountId: string,
@@ -673,10 +673,10 @@ export const upsertFunnel = async (
       id: funnelId || v4(),
       subAccountId: subAccountId,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const upsertPipeline = async (
   pipeline: Prisma.PipelineUncheckedCreateWithoutLanesInput
@@ -685,20 +685,20 @@ export const upsertPipeline = async (
     where: { id: pipeline.id || v4() },
     update: pipeline,
     create: pipeline,
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const deletePipeline = async (pipelineId: string) => {
   const response = await db.pipeline.delete({
     where: {
       id: pipelineId,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const updateLanesOrder = async (lanes: Lane[]) => {
   try {
@@ -711,14 +711,14 @@ export const updateLanesOrder = async (lanes: Lane[]) => {
           order: lane.order,
         },
       })
-    );
+    )
 
-    await db.$transaction(updateTransaction);
-    console.log("🟢 Done reordered 🟢");
+    await db.$transaction(updateTransaction)
+    console.log("🟢 Done reordered 🟢")
   } catch (error) {
-    console.log(error, "Error Updating Lanes Order");
+    console.log(error, "Error Updating Lanes Order")
   }
-};
+}
 
 export const updateTicketsOrder = async (tickets: Ticket[]) => {
   try {
@@ -732,27 +732,27 @@ export const updateTicketsOrder = async (tickets: Ticket[]) => {
           laneId: ticket.laneId,
         },
       })
-    );
+    )
 
-    await db.$transaction(updateTransaction);
-    console.log("🟢 Done reordered 🟢");
+    await db.$transaction(updateTransaction)
+    console.log("🟢 Done reordered 🟢")
   } catch (error) {
-    console.log(error, "Error Updating Tickets Order");
+    console.log(error, "Error Updating Tickets Order")
   }
-};
+}
 
 export const upsertLane = async (lane: Prisma.LaneUncheckedCreateInput) => {
-  let order: number;
+  let order: number
   if (!lane.order) {
     const lanes = await db.lane.findMany({
       where: {
         pipelineId: lane.pipelineId,
       },
-    });
+    })
 
-    order = lanes.length;
+    order = lanes.length
   } else {
-    order = lane.order;
+    order = lane.order
   }
 
   const response = await db.lane.upsert({
@@ -761,20 +761,20 @@ export const upsertLane = async (lane: Prisma.LaneUncheckedCreateInput) => {
     },
     update: lane,
     create: { ...lane, order },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const deleteLane = async (lanesId: string) => {
   const response = await db.lane.delete({
     where: {
       id: lanesId,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const getTicketsWithTags = async (pipelineId: string) => {
   const response = await db.ticket.findMany({
@@ -788,10 +788,10 @@ export const getTicketsWithTags = async (pipelineId: string) => {
       Assigned: true,
       Customer: true,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const getTicketsWithAllRelations = async (laneId: string) => {
   const response = await db.ticket.findMany({
@@ -804,10 +804,10 @@ export const getTicketsWithAllRelations = async (laneId: string) => {
       Lane: true,
       Tags: true,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const getSubAccountTeamMembers = async (subAccountId: string) => {
   const subAccountUsersWithAccess = await db.user.findMany({
@@ -827,10 +827,10 @@ export const getSubAccountTeamMembers = async (subAccountId: string) => {
         },
       },
     },
-  });
+  })
 
-  return subAccountUsersWithAccess;
-};
+  return subAccountUsersWithAccess
+}
 
 export const searchContacts = async (searchTerms: string) => {
   const response = await db.contact.findMany({
@@ -839,25 +839,25 @@ export const searchContacts = async (searchTerms: string) => {
         contains: searchTerms,
       },
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const upsertTicket = async (
   ticket: Prisma.TicketUncheckedCreateInput,
   tags: Tag[]
 ) => {
-  let order: number;
+  let order: number
   if (!ticket.order) {
     const tickets = await db.ticket.findMany({
       where: {
         laneId: ticket.laneId,
       },
-    });
-    order = tickets.length;
+    })
+    order = tickets.length
   } else {
-    order = ticket.order;
+    order = ticket.order
   }
 
   const response = await db.ticket.upsert({
@@ -883,20 +883,20 @@ export const upsertTicket = async (
       Tags: true,
       Lane: true,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const deleteTicket = async (ticketId: string) => {
   const response = await db.ticket.delete({
     where: {
       id: ticketId,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const upsertTag = async (
   subAccountId: string,
@@ -909,20 +909,20 @@ export const upsertTag = async (
     },
     update: tag,
     create: { ...tag, subAccountId: subAccountId },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const deleteTag = async (tagId: string) => {
   const response = await db.tag.delete({
     where: {
       id: tagId,
     },
-  });
+  })
 
-  return response;
-};
+  return response
+}
 
 export const getTagsForSubaccount = async (subAccountId: string) => {
   const response = await db.subAccount.findUnique({
@@ -932,7 +932,18 @@ export const getTagsForSubaccount = async (subAccountId: string) => {
     select: {
       Tags: true,
     },
-  });
+  })
 
   return response
-};
+}
+
+export const upsertContact = async (
+  contact: Prisma.ContactUncheckedCreateInput
+) => {
+  const response = await db.contact.upsert({
+    where: { id: contact.id || v4() },
+    update: contact,
+    create: contact,
+  })
+  return response
+}

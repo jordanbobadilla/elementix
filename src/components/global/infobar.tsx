@@ -1,9 +1,9 @@
-"use client";
+"use client"
 
-import { NotificationWithUser } from "@/lib/types";
-import { UserButton } from "@clerk/nextjs";
-import React, { useState } from "react";
-import { twMerge } from "tailwind-merge";
+import { NotificationWithUser } from "@/lib/types"
+import { UserButton } from "@clerk/nextjs"
+import React, { useState } from "react"
+import { twMerge } from "tailwind-merge"
 import {
   Sheet,
   SheetContent,
@@ -11,38 +11,38 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "../ui/sheet";
-import { Bell } from "lucide-react";
-import { Role } from "@prisma/client";
-import { Card } from "../ui/card";
-import { Switch } from "../ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { ModeToggle } from "./mode-toggle";
+} from "../ui/sheet"
+import { Bell } from "lucide-react"
+import { Role } from "@prisma/client"
+import { Card } from "../ui/card"
+import { Switch } from "../ui/switch"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import { ModeToggle } from "./mode-toggle"
 
 type Props = {
-  notifications: NotificationWithUser | [];
-  role?: Role;
-  className?: string;
-  subAccountId?: string;
-};
+  notifications: NotificationWithUser | []
+  role?: Role
+  className?: string
+  subAccountId?: string
+}
 
 const InfoBar = ({ notifications, subAccountId, className, role }: Props) => {
-  const [allNotifications, setAllNotifications] = useState(notifications);
-  const [showAll, setShowAll] = useState(true);
+  const [allNotifications, setAllNotifications] = useState(notifications)
+  const [showAll, setShowAll] = useState(true)
 
   const handleClick = () => {
     if (!showAll) {
-      setAllNotifications(notifications);
+      setAllNotifications(notifications)
     } else {
       if (notifications) {
         setAllNotifications(
           notifications.filter((item) => item.subAccountId === subAccountId) ??
             []
-        );
+        )
       }
     }
-    setShowAll((prev) => !prev);
-  };
+    setShowAll((prev) => !prev)
+  }
 
   return (
     <>
@@ -60,12 +60,12 @@ const InfoBar = ({ notifications, subAccountId, className, role }: Props) => {
                 <Bell size={17} />
               </div>
             </SheetTrigger>
-            <SheetContent className="mt-4 mr-4 pr-4 flex flex-col">
+            <SheetContent className="mt-4 mr-4 pr-4 overflow-y-scroll">
               <SheetHeader className="text-left">
                 <SheetTitle>Notifications</SheetTitle>
                 <SheetDescription>
                   {(role === "AGENCY_ADMIN" || role === "AGENCY_OWNER") && (
-                    <Card className="flex items-center justify-between p-4">
+                    <Card className="flex items-center justify-between p-4 my-4">
                       Current Subaccount
                       <Switch onCheckedChange={handleClick} />
                     </Card>
@@ -75,11 +75,14 @@ const InfoBar = ({ notifications, subAccountId, className, role }: Props) => {
               {allNotifications?.map((notification) => (
                 <div
                   key={notification.id}
-                  className="flex flex-col gap-y-2 mb-2 overflow-x-scroll text-ellipsis"
+                  className="flex flex-col gap-y-2 mb-2 text-ellipsis"
                 >
                   <div className="flex gap-2">
                     <Avatar>
-                      <AvatarImage src={notification.User.avatarUrl} alt="Profile Picture"/>
+                      <AvatarImage
+                        src={notification.User.avatarUrl}
+                        alt="Profile Picture"
+                      />
                       <AvatarFallback className="bg-primary">
                         {notification.User.name.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
@@ -110,11 +113,11 @@ const InfoBar = ({ notifications, subAccountId, className, role }: Props) => {
               )}
             </SheetContent>
           </Sheet>
-          <ModeToggle/>
+          <ModeToggle />
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default InfoBar;
+export default InfoBar
