@@ -101,7 +101,7 @@ const AgencyDetails = ({ data }: Props) => {
         const bodyData = {
           email: values.companyEmail,
           name: values.name,
-          shiping: {
+          shipping: {
             address: {
               city: values.city,
               country: values.country,
@@ -127,8 +127,18 @@ const AgencyDetails = ({ data }: Props) => {
           },
           body: JSON.stringify(bodyData),
         })
-        const customerData: { customerId: string } =
-          await customerResponse.json()
+        if (!customerResponse.ok) {
+          toast({
+            variant: "destructive",
+            title: "Error al crear cliente en Stripe",
+            description:
+              "Verifica que todos los campos estén llenos correctamente.",
+          })
+          return
+        }
+        const customerData = await customerResponse.json()
+        console.log(customerResponse)
+
         customerId = customerData.customerId
       }
 
@@ -157,7 +167,7 @@ const AgencyDetails = ({ data }: Props) => {
       toast({
         title: "Created Agency",
       })
-      if (data?.id && response) {
+      if (data?.id || response) {
         return router.refresh()
       }
     } catch (error) {
