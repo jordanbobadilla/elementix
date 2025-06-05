@@ -57,7 +57,13 @@ const PricingCard = ({
           customerId={customerId}
           planExists={planExists}
         />
-      </CustomModal>
+      </CustomModal>,
+      async () => ({
+        plans: {
+          plans: prices,
+          defaultPriceId: plan ? plan : "",
+        },
+      })
     )
   }
 

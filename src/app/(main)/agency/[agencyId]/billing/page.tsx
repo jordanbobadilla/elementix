@@ -26,7 +26,7 @@ const BillingPage = async ({ params }: Props) => {
   })
 
   const prices = await stripe.prices.list({
-    product: process.env.NEXT_ELEMNTIX_PRODUCT_ID,
+    product: process.env.NEXT_ELEMENTIX_PRODUCT_ID,
     active: true,
   })
 
@@ -61,7 +61,7 @@ const BillingPage = async ({ params }: Props) => {
           planExists={agencySubscription?.Subscription?.active === true}
           prices={prices.data}
           //@ts-ignore
-          customerId={agencySubscription?.customerId}
+          customerId={agencySubscription?.customerId || ""}
           amt={
             agencySubscription?.Subscription?.active === true
               ? currentPlanDetails?.price || "$0"
@@ -82,8 +82,12 @@ const BillingPage = async ({ params }: Props) => {
           duration="/month"
           features={
             agencySubscription?.Subscription?.active === true
-              ? currentPlanDetails?.features || pricingCards.find((card) => card.title === "Starter")?.features || []
-              : pricingCards.find((card) => card.title === "Starter")?.features || []
+              ? currentPlanDetails?.features ||
+                pricingCards.find((card) => card.title === "Starter")
+                  ?.features ||
+                []
+              : pricingCards.find((card) => card.title === "Starter")
+                  ?.features || []
           }
           title={
             agencySubscription?.Subscription?.active === true
@@ -91,6 +95,29 @@ const BillingPage = async ({ params }: Props) => {
               : "Starter"
           }
         />
+        {addOns.data.map((addOn) => (
+          <PricingCard
+            key={addOn.id}
+            planExists={agencySubscription?.Subscription?.active === true}
+            prices={prices.data}
+            //@ts-ignore
+            customerId={agencySubscription?.customerId || ""}
+            amt={
+              //@ts-ignore
+              addOn.default_price?.unit_amount
+                ? //@ts-ignore
+                  `$${addOn.default_price.unit_amount / 100}`
+                : "$0"
+            }
+            buttonCta={"Subscribe"}
+            highlightDescription="Get priority support and skip the long line with the click of a button"
+            highlightTitle="Get Support Now!"
+            description={"Dedicated support line & teams channel for support"}
+            duration="/month"
+            features={[]}
+            title={"24/7 Priority Support"}
+          />
+        ))}
       </div>
     </>
   )

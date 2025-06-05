@@ -54,7 +54,7 @@ const SubscriptionForm = ({ selectedPriceId }: Props) => {
     <form onSubmit={handleSubmit}>
       <small className="text-destructive">{priceError}</small>
       <PaymentElement />
-      <Button disabled={stripeHook} className="mt-4 w-full">
+      <Button disabled={!stripeHook} type="submit" className="mt-4 w-full">
         Submit
       </Button>
     </form>

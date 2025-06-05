@@ -39,6 +39,8 @@ const SubscriptionFormWrapper = ({ customerId, planExists }: Props) => {
     [subscription]
   )
 
+  console.log(options)
+
   useEffect(() => {
     if (!selectedPriceId) return
     const createSecret = async () => {
@@ -74,7 +76,7 @@ const SubscriptionFormWrapper = ({ customerId, planExists }: Props) => {
 
   return (
     <div className="border-none transition-all">
-      <div className="flex fle-col gap-4">
+      <div className="flex flex-col gap-4">
         {data.plans?.plans.map((price) => (
           <Card
             onClick={() => setSelectedPriceId(price.id as Plan)}
