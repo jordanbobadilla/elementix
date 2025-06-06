@@ -4,6 +4,15 @@ import { db } from "@/lib/db"
 import { stripe } from "@/lib/stripe"
 import React from "react"
 import PricingCard from "./_components/pricing-card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import clsx from "clsx"
 
 type Props = {
   params: { agencyId: string }
@@ -119,6 +128,42 @@ const BillingPage = async ({ params }: Props) => {
           />
         ))}
       </div>
+      <h2 className="text-2xl p-4">Payment History</h2>
+      <Table className="bg-card border-[1px] border-border rounded-md">
+        <TableHeader className="rounded-md">
+          <TableRow>
+            <TableHead className="w-[200px]">Description</TableHead>
+            <TableHead className="w-[200px]">Invoice ID</TableHead>
+            <TableHead className="w-[300px]">Date</TableHead>
+            <TableHead className="w-[200px]">Paid</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody className="font-medium truncate">
+          {allCharges.map((charge) => (
+            <TableRow key={charge.id}>
+              <TableCell>{charge.description}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {charge.id}
+              </TableCell>
+              <TableCell>{charge.date}</TableCell>
+              <TableCell>
+                <p
+                  className={clsx("", {
+                    "text-emerald-500": charge.status.toLowerCase() === "paid",
+                    "text-orange-600":
+                      charge.status.toLowerCase() === "pending",
+                    "text-red-600": charge.status.toLowerCase() === "failed",
+                  })}
+                >
+                  {charge.status.toUpperCase()}
+                </p>
+              </TableCell>
+              <TableCell className="text-right">{charge.amount}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </>
   )
 }

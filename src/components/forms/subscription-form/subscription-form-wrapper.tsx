@@ -1,4 +1,5 @@
 "use client"
+
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import { pricingCards } from "@/lib/constans"
@@ -26,42 +27,48 @@ const SubscriptionFormWrapper = ({ customerId, planExists }: Props) => {
   )
   const [subscription, setSubscription] = useState<{
     subscriptionId: string
-    clientSecret: string
-  }>({ subscriptionId: "", clientSecret: "" })
+    clientSecret: string | null
+  }>({ subscriptionId: "", clientSecret: null })
 
   const options: StripeElementsOptions = useMemo(
     () => ({
-      clientSecret: subscription.clientSecret,
+      clientSecret: subscription.clientSecret ?? "",
       appearance: {
         theme: "flat",
       },
     }),
-    [subscription]
+    [subscription.clientSecret]
   )
 
-  console.log(options)
+  const stripePromise = useMemo(() => getStripe(), [])
 
   useEffect(() => {
     if (!selectedPriceId) return
+
     const createSecret = async () => {
-      const subscriptionResponse = await fetch(
-        "/api/stripe/create-subscription",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            customerId,
-            priceId: selectedPriceId,
-          }),
-        }
-      )
-      const subscriptionResponseData = await subscriptionResponse.json()
-      setSubscription({
-        clientSecret: subscriptionResponseData.clientSecret,
-        subscriptionId: subscriptionResponseData.subscriptionId,
+      const res = await fetch("/api/stripe/create-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId, priceId: selectedPriceId }),
       })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.clientSecret) {
+        toast({
+          variant: "destructive",
+          title: "No se pudo crear la suscripción",
+          description:
+            "Asegúrate de haber seleccionado un plan válido y que el cliente tenga datos válidos.",
+        })
+        return
+      }
+
+      setSubscription({
+        subscriptionId: data.subscriptionId,
+        clientSecret: data.clientSecret,
+      })
+
       if (planExists) {
         toast({
           title: "Success",
@@ -71,8 +78,12 @@ const SubscriptionFormWrapper = ({ customerId, planExists }: Props) => {
         router.refresh()
       }
     }
+
     createSecret()
-  }, [data, selectedPriceId, customerId])
+  }, [selectedPriceId, customerId])
+
+  console.log("clientSecret:", subscription.clientSecret)
+  console.log("stripePromise:", stripePromise)
 
   return (
     <div className="border-none transition-all">
@@ -104,16 +115,20 @@ const SubscriptionFormWrapper = ({ customerId, planExists }: Props) => {
             )}
           </Card>
         ))}
-        {options.clientSecret && !planExists && (
+
+        {subscription.clientSecret && !planExists && (
           <>
             <h1 className="text-xl">Payment Method</h1>
-            <Elements stripe={getStripe()} options={options}>
-              <SubscriptionForm selectedPriceId={selectedPriceId} />
+            <Elements stripe={stripePromise} options={options}>
+              <SubscriptionForm
+                selectedPriceId={selectedPriceId}
+                clientSecret={subscription.clientSecret}
+              />
             </Elements>
           </>
         )}
 
-        {!options.clientSecret && selectedPriceId && (
+        {!subscription.clientSecret && selectedPriceId && (
           <div className="flex items-center justify-center w-full h-40">
             <Loading />
           </div>
