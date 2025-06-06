@@ -38,13 +38,23 @@ export async function POST(req: Request) {
       })
 
       //@ts-ignore
-      const clientSecret = updated.latest_invoice?.payment_intent?.client_secret ?? null
+      const clientSecret = updated.latest_invoice?.payment_intent?.client_secret
 
       return NextResponse.json({
         subscriptionId: updated.id,
         clientSecret,
       })
     }
+
+    console.log("🧪 Sub Params", {
+      customer: customerId,
+      items: [{ price: priceId }],
+      payment_behavior: "default_incomplete",
+      payment_settings: {
+        save_default_payment_method: "on_subscription",
+      },
+      expand: ["latest_invoice.payment_intent"],
+    })
 
     // 🆕 CREAR NUEVA SUSCRIPCIÓN
     const created = await stripe.subscriptions.create({
@@ -58,7 +68,7 @@ export async function POST(req: Request) {
     })
 
     //@ts-ignore
-    const clientSecret = created.latest_invoice?.payment_intent?.client_secret ?? null
+    const clientSecret = created.latest_invoice?.payment_intent?.client_secret
 
     return NextResponse.json({
       subscriptionId: created.id,

@@ -54,6 +54,9 @@ const SubscriptionFormWrapper = ({ customerId, planExists }: Props) => {
 
       const data = await res.json()
 
+      console.log(res.ok)
+      console.log(data)
+
       if (!res.ok || !data.clientSecret) {
         toast({
           variant: "destructive",
@@ -80,7 +83,7 @@ const SubscriptionFormWrapper = ({ customerId, planExists }: Props) => {
     }
 
     createSecret()
-  }, [selectedPriceId, customerId])
+  }, [data, selectedPriceId, customerId])
 
   console.log("clientSecret:", subscription.clientSecret)
   console.log("stripePromise:", stripePromise)

@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
           case "customer.subscription.updated": {
             if (subscription.status === "active") {
               await subscriptionCreated(
-                subscription.items.data[0],
+                subscription,
                 subscription.customer as string
               )
               console.log("CREATED FROM WEBHOOK", subscription)

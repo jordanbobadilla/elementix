@@ -3,11 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { Plan } from "@prisma/client"
-import {
-  CardElement,
-  useElements,
-  useStripe,
-} from "@stripe/react-stripe-js"
+import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js"
 import React, { useState } from "react"
 
 type Props = {
@@ -35,15 +31,17 @@ const SubscriptionForm = ({ clientSecret, selectedPriceId }: Props) => {
       toast({
         variant: "destructive",
         title: "Missing Payment Intent",
-        description: "No se pudo generar el intento de pago. Intenta más tarde.",
+        description:
+          "No se pudo generar el intento de pago. Intenta más tarde.",
       })
       return
     }
 
     try {
-      const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: elements.getElement(CardElement)!,
+      const result = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${process.env.NEXT_PUBLIC_URL}/agency`,
         },
       })
 
@@ -52,12 +50,8 @@ const SubscriptionForm = ({ clientSecret, selectedPriceId }: Props) => {
         toast({
           variant: "destructive",
           title: "Payment Failed",
-          description: result.error.message ?? "Ocurrió un error al procesar el pago.",
-        })
-      } else if (result.paymentIntent?.status === "succeeded") {
-        toast({
-          title: "Pago exitoso",
-          description: "Tu suscripción ha sido activada correctamente.",
+          description:
+            result.error.message ?? "Ocurrió un error al procesar el pago.",
         })
       }
     } catch (err) {
@@ -71,25 +65,14 @@ const SubscriptionForm = ({ clientSecret, selectedPriceId }: Props) => {
   }
 
   console.log("Stripe hook:", stripe)
-console.log("Elements hook:", elements)
-
+  console.log("Elements hook:", elements)
 
   return (
     <form onSubmit={handleSubmit}>
       {priceError && (
         <small className="text-destructive block mb-2">{priceError}</small>
       )}
-      <CardElement
-        options={{
-          style: {
-            base: {
-              fontSize: "16px",
-              color: "#32325d",
-              "::placeholder": { color: "#a0aec0" },
-            },
-          },
-        }}
-      />
+      <PaymentElement />
       <Button
         disabled={!stripe || !elements}
         type="submit"

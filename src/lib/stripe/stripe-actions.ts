@@ -3,7 +3,7 @@ import { db } from "../db"
 import { stripe } from "."
 
 export const subscriptionCreated = async (
-  subscription: Stripe.SubscriptionItem,
+  subscription: Stripe.Subscription,
   customerId: string
 ) => {
   try {
@@ -20,14 +20,16 @@ export const subscriptionCreated = async (
     }
 
     const data = {
-      active: subscription.price.active,
+      active: subscription.items.data[0].price.active,
       agencyId: agency.id,
       customerId,
-      currentPeriodEndDate: new Date(subscription.current_period_end * 1000),
-      priceId: subscription.price.id,
+      currentPeriodEndDate: new Date(subscription.items.data[0].current_period_end * 1000),
+      priceId: subscription.items.data[0].price.id,
       subscritiptionId: subscription.id,
-      plan: subscription.plan.id,
+      plan: subscription.items.data[0].plan.id,
     }
+
+    console.log(data)
 
     const response = await db.subscription.upsert({
       where: {
