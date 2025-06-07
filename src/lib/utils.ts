@@ -10,7 +10,7 @@ export function getStripeOAuthLink(
   state: string
 ) {
   const redirectUri = encodeURIComponent(
-    `${process.env.NEXT_PUBLIC_URL}agency/launchpad-redirect`
+    `${process.env.NEXT_PUBLIC_URL}${accountType}/launchpad-redirect`
   )
   return `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_STRIPE_CLIENT_ID}&scope=read_write&state=${state}&redirect_uri=${redirectUri}`
 }

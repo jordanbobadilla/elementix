@@ -1,49 +1,61 @@
-import BlurPage from '@/components/global/blur-page'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { db } from '@/lib/db'
-import { CheckCircleIcon } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import React from 'react'
+import BlurPage from "@/components/global/blur-page"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { db } from "@/lib/db"
+import { CheckCircleIcon } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import React from "react"
+import LaunchpadClient from "./LaunchpadClient"
+import { getStripeOAuthLink } from "@/lib/utils"
 
 type Props = {
   params: {
     subaccountId: string
   }
-  searchParams:{
+  searchParams: {
     state: string
     code: string
   }
 }
 
-const LaunchPad = async ({params, searchParams}: Props) => {
+const LaunchPad = async ({ params, searchParams }: Props) => {
   const subAccountDetails = await db.subAccount.findUnique({
     where: {
-      id: params.subaccountId
-    }
+      id: params.subaccountId,
+    },
   })
 
   if (!subAccountDetails) {
     return
   }
 
-  const allDetailsExist = 
+  const allDetailsExist =
     subAccountDetails.address &&
-    subAccountDetails.city && 
+    subAccountDetails.city &&
     subAccountDetails.companyEmail &&
     subAccountDetails.companyPhone &&
-    subAccountDetails.country && 
+    subAccountDetails.country &&
     subAccountDetails.name &&
     subAccountDetails.state &&
     subAccountDetails.subAccountLogo &&
     subAccountDetails.zipCode
 
-    //WIP: Wire up stripe
+    const stripeOAuthLink = getStripeOAuthLink(
+      "subaccount",
+      `launchpad___${subAccountDetails.id}`
+    );
 
   return (
     <BlurPage>
       <div className="flex flex-col justify-center items-center">
+        <LaunchpadClient subaccountId={params.subaccountId}/>
         <div className="w-full h-full max-w-[800px]">
           <Card className="border-none ">
             <CardHeader>
@@ -66,7 +78,7 @@ const LaunchPad = async ({params, searchParams}: Props) => {
                 </div>
                 <Button>Start</Button>
               </div>
-              <div className="flex justify-between items-center w-full h-20 border p-4 rounded-lg">
+              <div className="flex justify-between items-center w-full border p-4 rounded-lg gap-2">
                 <div className="flex items-center gap-4">
                   <Image
                     src="/stripelogo.png"
@@ -80,6 +92,19 @@ const LaunchPad = async ({params, searchParams}: Props) => {
                     used to run payouts.
                   </p>
                 </div>
+                {subAccountDetails.connectedAccountId ? (
+                  <CheckCircleIcon
+                    size={50}
+                    className="text-primary p-2 flex-shrink-0"
+                  />
+                ) : (
+                  <Link
+                    className="bg-primary py-2 px-4 rounded-md text-white"
+                    href={stripeOAuthLink}
+                  >
+                    Start
+                  </Link>
+                )}
               </div>
               <div className="flex justify-between items-center w-full h-20 border p-4 rounded-lg">
                 <div className="flex items-center gap-4">
