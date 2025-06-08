@@ -61,6 +61,8 @@ const ContactUserForm: React.FC<ContactUserFormProps> = ({ subaccountId }) => {
         title: "Success",
         description: "Saved contact details",
       })
+      setClose()
+      router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
