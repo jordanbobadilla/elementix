@@ -30,7 +30,7 @@ export default function LaunchpadClient({ agencyId }: { agencyId: string }) {
     };
 
     connectStripe();
-  }, [code, agencyId]);
+  }, [code, agencyId, router]);
 
   return null;
 }

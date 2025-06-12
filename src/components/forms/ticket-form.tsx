@@ -47,6 +47,7 @@ import {
 import { cn } from "@/lib/utils"
 import Loading from "../global/loading"
 import TagCreator from "../global/tag-creator"
+import { setTimeout } from "timers"
 
 type Props = {
   laneId: string
@@ -108,7 +109,7 @@ const TicketForm = ({ getNewTicket, laneId, subAccountId }: Props) => {
       }
       fetchData()
     }
-  }, [defaultData])
+  }, [defaultData, form])
 
   const onSubmit = async (values: z.infer<typeof TicketFormSchema>) => {
     if (!laneId) return

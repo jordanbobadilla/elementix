@@ -52,7 +52,7 @@ const TagCreator = ({ getSelectedTags, subAccountId, defaultTags }: Props) => {
 
   useEffect(() => {
     getSelectedTags(selectedTags)
-  }, [selectedTags])
+  }, [selectedTags, getSelectedTags])
 
   useEffect(() => {
     if (subAccountId) {

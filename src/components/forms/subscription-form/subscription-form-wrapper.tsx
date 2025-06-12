@@ -83,7 +83,7 @@ const SubscriptionFormWrapper = ({ customerId, planExists }: Props) => {
     }
 
     createSecret()
-  }, [data, selectedPriceId, customerId])
+  }, [data, selectedPriceId, customerId, planExists, router, setClose])
 
   console.log("clientSecret:", subscription.clientSecret)
   console.log("stripePromise:", stripePromise)

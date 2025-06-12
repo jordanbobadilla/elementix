@@ -30,7 +30,7 @@ export default function LaunchpadClient({ subaccountId }: { subaccountId: string
     };
 
     connectStripe();
-  }, [code, subaccountId]);
+  }, [code, subaccountId, router]);
 
   return null;
 }

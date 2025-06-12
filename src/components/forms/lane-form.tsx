@@ -62,7 +62,7 @@ const LaneForm: React.FC<CreateLaneFormProps> = ({
         name: defaultData.name || '',
       })
     }
-  }, [defaultData])
+  }, [defaultData, form])
 
   const isLoading = form.formState.isLoading
 
